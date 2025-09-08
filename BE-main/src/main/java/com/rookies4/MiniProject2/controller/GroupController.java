@@ -1,36 +1,26 @@
 package com.rookies4.MiniProject2.controller;
 
-import com.rookies4.MiniProject2.domain.entity.Group;
-import com.rookies4.MiniProject2.domain.enums.ApprovalStatus;
-import com.rookies4.MiniProject2.repository.GroupRepository;
+import com.rookies4.MiniProject2.dto.GroupDto;
+import com.rookies4.MiniProject2.service.GroupService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/groups")
 @RequiredArgsConstructor
 public class GroupController {
-    private final GroupRepository groupRepository;
 
-    @GetMapping
-    public List<Group> getGroups(
-            @RequestParam(required = false) Integer regionId,
-            @RequestParam(required = false) Integer sportId) {
+    private final GroupService groupService;
 
-        ApprovalStatus approvedStatus = ApprovalStatus.APPROVED;
-
-        if (regionId != null && sportId != null) {
-            return groupRepository.findByRegionIdAndSportIdAndApprovalStatus(regionId, sportId, approvedStatus);
-        } else if (regionId != null) {
-            return groupRepository.findByRegionIdAndApprovalStatus(regionId, approvedStatus);
-        } else if (sportId != null) {
-            return groupRepository.findBySportIdAndApprovalStatus(sportId, approvedStatus);
-        } else {
-            return groupRepository.findByApprovalStatus(approvedStatus);
-        }
+    @PostMapping
+    public ResponseEntity<String> createGroup(@Valid @RequestBody GroupDto.CreateRequest request) {
+        groupService.createGroup(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body("모임이 성공적으로 생성되었습니다.");
     }
 }

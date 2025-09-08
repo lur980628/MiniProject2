@@ -1,62 +1,62 @@
 package com.rookies4.MiniProject2.jwt;
 
+import com.rookies4.MiniProject2.domain.entity.User;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 import java.security.Key;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.JwtParserBuilder;
 
 @Component
 public class JwtTokenProvider {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-    @Getter
-    private final long JWT_EXPIRATION_MS = 86400000; // 1일 (밀리초)
+    @Value("${jwt.secret}")
+    private String secret;
 
-    public String generateToken(String username) {
+    @Getter
+    @Value("${jwt.expiration}")
+    private long JWT_EXPIRATION_MS;
+
+    public Key getSigningKey() {
+        byte[] keyBytes = secret.getBytes();
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String generateToken(User user) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION_MS);
 
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("sub", user.getUsername());
+        claims.put("roles", Collections.singletonList(user.getRole().name()));
+
         return Jwts.builder()
-                .setSubject(username)
+                .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    public String getUsernameFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(key)
-                .build() // **이 부분이 중요합니다.**
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.getSubject();
-    }
-
-    public boolean validateToken(String authToken) {
+    public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(key).build().parseClaimsJws(authToken);
+            Jwts.parser()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
             return true;
-        } catch (SignatureException ex) {
-            // 유효하지 않은 JWT 서명
-        } catch (MalformedJwtException ex) {
-            // 손상된 JWT 토큰
-        } catch (ExpiredJwtException ex) {
-            // 만료된 JWT 토큰
-        } catch (UnsupportedJwtException ex) {
-            // 지원되지 않는 JWT 토큰
-        } catch (IllegalArgumentException ex) {
-            // JWT 클레임 문자열이 비어있음
+        } catch (Exception ex) {
+            return false;
         }
-        return false;
     }
 }

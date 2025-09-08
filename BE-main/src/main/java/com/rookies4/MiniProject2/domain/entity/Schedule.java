@@ -1,6 +1,8 @@
 package com.rookies4.MiniProject2.domain.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 @Table(name = "schedules")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

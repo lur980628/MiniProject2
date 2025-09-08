@@ -7,6 +7,7 @@ import com.rookies4.MiniProject2.jwt.JwtTokenProvider;
 import com.rookies4.MiniProject2.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import com.rookies4.MiniProject2.domain.enums.Role;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -53,9 +54,8 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        String accessToken = jwtTokenProvider.generateToken(user.getUsername());
+        String accessToken = jwtTokenProvider.generateToken(user);
 
-        // 오류가 발생한 줄입니다. jwtTokenProvider.JWT_EXPIRATION_MS로 직접 접근합니다.
         long expiresIn = jwtTokenProvider.getJWT_EXPIRATION_MS();
 
         return AuthDto.TokenResponse.builder()

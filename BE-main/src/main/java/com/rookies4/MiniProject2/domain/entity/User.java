@@ -47,5 +47,4 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupMember> groupMembers = new ArrayList<>();
 
-    // @Builder 어노테이션을 추가하면 아래 생성자는 롬복이 자동으로 만들어주므로 필요하지 않습니다.
 }

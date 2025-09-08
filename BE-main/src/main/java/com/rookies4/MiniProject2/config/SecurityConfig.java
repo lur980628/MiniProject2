@@ -4,6 +4,7 @@ import com.rookies4.MiniProject2.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // 이 import 문을 추가합니다.
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,12 +35,22 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/regions", "/api/sports", "/api/groups/**").permitAll()
+                        // 1. 로그인/회원가입, 지역/종목 조회는 인증 없이 접근 허용
+                        .requestMatchers("/api/auth/**", "/api/regions", "/api/sports").permitAll()
+
+                        // 2. 모임 생성은 USER 권한이 필요합니다.
+                        .requestMatchers(HttpMethod.POST, "/api/groups").hasRole("USER") // 수정된 부분입니다.
+
+                        // 3. 모임 조회는 모든 인증된 사용자가 접근 가능합니다.
+                        .requestMatchers(HttpMethod.GET, "/api/groups").authenticated() // 수정된 부분입니다.
+
+                        // 4. 관리자 API는 ADMIN 권한이 필요합니다.
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // 5. 그 외 모든 요청은 인증된 사용자만 접근 가능합니다.
                         .anyRequest().authenticated()
                 );
 
-        // 오타 수정: jFwtAuthenticationilter -> jwtAuthenticationFilter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

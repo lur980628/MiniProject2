@@ -2,8 +2,10 @@ package com.rookies4.MiniProject2.domain.entity;
 
 import com.rookies4.MiniProject2.domain.enums.ApprovalStatus;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,8 @@ import java.util.List;
 @Table(name = "groups")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
