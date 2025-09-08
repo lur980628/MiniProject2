@@ -1,7 +1,8 @@
 package com.rookies4.MiniProject2.repository;
 
-import com.rookies4.MiniProject2.domain.Region;
+import com.rookies4.MiniProject2.domain.entity.Region;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface RegionRepository extends JpaRepository<Region, Long> {
-}
+@Repository
+public interface RegionRepository extends JpaRepository<Region, Integer> {}

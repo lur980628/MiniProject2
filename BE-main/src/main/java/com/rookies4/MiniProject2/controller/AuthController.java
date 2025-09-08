@@ -1,10 +1,9 @@
 package com.rookies4.MiniProject2.controller;
 
-import com.rookies4.MiniProject2.domain.User;
-import com.rookies4.MiniProject2.dto.UserRegisterDto;
-import com.rookies4.MiniProject2.service.AuthService;
+import com.rookies4.MiniProject2.dto.AuthDto;
+import com.rookies4.MiniProject2.service.AuthService; // 이 부분을 추가
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,27 +13,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
+    private final AuthService authService; // TODO 제거 및 실제 주입
 
-    private final AuthService authService;
-
-    @Autowired
-    public AuthController(AuthService authService) {
-        this.authService = authService;
+    @PostMapping("/signup")
+    public ResponseEntity<AuthDto.SignUpResponse> signup(@Valid @RequestBody AuthDto.SignUpRequest request) {
+        AuthDto.SignUpResponse response = authService.signup(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegisterDto registerDto) {
-        try {
-            User newUser = new User();
-            newUser.setUsername(registerDto.getUsername());
-            newUser.setPassword(registerDto.getPassword());
-            newUser.setNickname(registerDto.getNickname());
-
-            authService.registerUser(newUser);
-            return new ResponseEntity<>("회원가입이 성공적으로 완료되었습니다.", HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    @PostMapping("/login")
+    public ResponseEntity<AuthDto.TokenResponse> login(@Valid @RequestBody AuthDto.LoginRequest request) {
+        AuthDto.TokenResponse token = authService.login(request);
+        return ResponseEntity.ok(token);
     }
 }
