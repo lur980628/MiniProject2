@@ -11,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +50,7 @@ public class GroupService {
                 .approvalStatus(ApprovalStatus.PENDING) // 관리자 승인 대기 상태로 생성
                 .createdAt(LocalDateTime.now())
                 .build();
-        
+
         Group savedGroup = groupRepository.save(newGroup);
 
         // 4. 모임장(리더)를 모임 구성원으로 추가
@@ -60,7 +62,7 @@ public class GroupService {
                 .build();
         groupMemberRepository.save(leaderMember);
 
-        // 5. 모임 일정 추가 (선택사항, 필요에 따라)
+        
         Schedule schedule = Schedule.builder()
                 .group(savedGroup)
                 .location(request.getLocation())
@@ -70,5 +72,32 @@ public class GroupService {
         scheduleRepository.save(schedule);
 
         return savedGroup;
+    }
+
+    @Transactional
+    public List<GroupDto.GroupListResponse> getGroups(Integer regionId, Integer sportId) {
+        List<Group> groups;
+        if (regionId != null && sportId != null) {
+            groups = groupRepository.findByRegionIdAndSportIdAndApprovalStatus(regionId, sportId, ApprovalStatus.APPROVED);
+        } else if (regionId != null) {
+            groups = groupRepository.findByRegionIdAndApprovalStatus(regionId, ApprovalStatus.APPROVED);
+        } else if (sportId != null) {
+            groups = groupRepository.findBySportIdAndApprovalStatus(sportId, ApprovalStatus.APPROVED);
+        } else {
+            groups = groupRepository.findByApprovalStatus(ApprovalStatus.APPROVED);
+        }
+
+        return groups.stream().map(group ->
+                GroupDto.GroupListResponse.builder()
+                        .groupId(group.getId())
+                        .groupName(group.getGroupName())
+                        .regionName(group.getRegion().getName())
+                        .sportName(group.getSport().getName())
+                        .leaderNickname(group.getLeader().getNickname())
+                        .currentMembers(group.getMembers().size())
+                        .maxMembers(group.getMaxMembers())
+                        .createdAt(group.getCreatedAt())
+                        .build()
+        ).collect(Collectors.toList());
     }
 }

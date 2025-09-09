@@ -6,10 +6,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -22,5 +20,13 @@ public class GroupController {
     public ResponseEntity<String> createGroup(@Valid @RequestBody GroupDto.CreateRequest request) {
         groupService.createGroup(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("모임이 성공적으로 생성되었습니다.");
+    }
+
+    @GetMapping
+    public ResponseEntity<List<GroupDto.GroupListResponse>> getGroups(
+            @RequestParam(required = false) Integer regionId,
+            @RequestParam(required = false) Integer sportId) {
+        List<GroupDto.GroupListResponse> groups = groupService.getGroups(regionId, sportId);
+        return ResponseEntity.ok(groups);
     }
 }
